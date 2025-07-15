@@ -6,28 +6,45 @@ from app.db.schemas.chat_schema import ChatResponse
 from app.rag.word_filter import is_question_safe
 
 
-async def handle_admission_query(question: str, db: AsyncSession) -> ChatResponse:
-    if not is_question_safe(question):
-        return ChatResponse(
-            answer="Câu hỏi của bạn chứa nội dung không phù hợp.",
-            chunks=[]
-        )
+# async def handle_admission_query(question: str, db: AsyncSession) -> ChatResponse:
+#     if not is_question_safe(question):
+#         return ChatResponse(
+#             answer="Câu hỏi của bạn chứa nội dung không phù hợp.",
+#             chunks=[]
+#         )
+#     result = await chat_pipeline(
+#         question=question,
+#         role="guest",
+#         db=db
+#     )
+
+#     return ChatResponse(
+#         answer=result["answer"],
+#         chunks=result["chunks"]
+#     )
+
+async def handle_admission_query(question: str, db: AsyncSession):
+    role = "admission"
+    user_id = None
+    username = "guest"
 
     result = await chat_pipeline(
         question=question,
-        role="guest",
-        db=db
+        role=role,
+        db=db,
+        user_id=user_id,
+        username=username
     )
 
-    return ChatResponse(
-        answer=result["answer"],
-        chunks=result["chunks"]
-    )
+    return {
+        "answer": result["answer"],
+        "sources": result["chunks"]
+    }
 
 async def handle_student_query(question: str, db: AsyncSession, user: dict) -> ChatResponse:
     if not is_question_safe(question):
         return ChatResponse(
-            answer="⚠️ Câu hỏi của bạn chứa nội dung không phù hợp.",
+            answer="Câu hỏi của bạn chứa nội dung không phù hợp.",
             chunks=[]
         )
 
@@ -48,7 +65,6 @@ async def handle_student_query(question: str, db: AsyncSession, user: dict) -> C
 
     db.add(new_log)
     await db.commit()
-
     return ChatResponse(
         answer=result["answer"],
         chunks=result["chunks"]

@@ -1,7 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.database import get_db
 from app.db.schemas.chat_schema import ChatRequest, ChatResponse
 from app.services.chat_service import handle_admission_query, handle_student_query

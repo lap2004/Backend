@@ -2,7 +2,6 @@ import json
 from uuid import uuid4
 from typing import List
 
-
 def load_json_chunks(path: str, source: str) -> List[dict]:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -53,7 +52,6 @@ def load_json_chunks(path: str, source: str) -> List[dict]:
                     })
             elif field == "to_hop_xet_tuyen":
                 if isinstance(value, list):
-        # Hiển thị từng tổ hợp dưới dạng gạch đầu dòng không đánh số (tránh LLM suy diễn mã tổ hợp)
                     grouped = "\n".join([f"- {v.strip()}" for v in value if v.strip()])
                     content = f"Các tổ hợp môn xét tuyển cho ngành {base_title} gồm:\n{grouped}"
                 else:

@@ -18,9 +18,6 @@ SessionLocal = sessionmaker(
 )
 
 def get_sync_session():
-    """
-    Dùng trong script như embed_runner.py
-    """
     return SessionLocal()
 
 async_engine = create_async_engine(

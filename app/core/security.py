@@ -8,22 +8,17 @@ from sqlalchemy.future import select
 from app.config import settings
 from app.core.constants import Role
 from app.db.models.user_model import User
-from app.db.database import get_db  # bạn cần import get_db để truy vấn DB
+from app.db.database import get_db 
 
-# Mật khẩu và Token
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
 
-# Trả lại mật khẩu thô (plaintext)
 def password(password: str) -> str:
-    return password  # không mã hóa gì cả
+    return password 
 
-# So sánh trực tiếp mật khẩu người dùng nhập với mật khẩu lưu trong DB
 def verify_password(plain_password: str, stored_password: str) -> bool:
     return plain_password == stored_password
 
-# Giải mã token
 def decode_access_token(token: str) -> dict:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -50,7 +45,6 @@ async def get_current_user(
     if not user_id:
         raise HTTPException(status_code=401, detail="Token thiếu thông tin")
 
-    # 🔍 Truy vấn người dùng từ DB
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -59,7 +53,6 @@ async def get_current_user(
 
     return user  
 
-# Kiểm tra quyền người dùng
 def require_role(allowed_roles: list[Role]):
     """
     Dependency kiểm tra xem người dùng hiện tại có nằm trong danh sách quyền không.

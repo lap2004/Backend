@@ -1,74 +1,166 @@
-chatbot/
-├── app/                            # 🧠 Toàn bộ backend logic FastAPI
-│   ├── __init__.py
-│   ├── main.py                     # ✅ Entry Point FastAPI
-│   ├── config.py                   # ✅ Load .env, thiết lập config
-│   ├── logger.py                   # ✅ Log hệ thống dùng Loguru
+#### Cấu trúc dự án
+└── chatbot
+    ├── alembic
+    ├── alembic.ini
+    ├── app
+    │   ├── auth
+    │   │   ├── email_utils.py                                      #Gửi email xác minh tài khoản hoặc khôi phục mật khẩu qua SMTP
+    │   │   └── tokens.                                             #Sinh và kiểm tra JWT tokens cho xác thực người dùng
+    │   ├── config.py                                               #Biến môi trường, cài đặt hệ thống (DB URL, LLM API...)
+    │   ├── core                                                    
+    │   │   ├── constants.py                                        #Biến hằng dùng chung (e.g., roles, cấu hình mặc định)
+    │   │   ├── dependencies.py                                     #Inject dependency (current user, token validation) cho route
+    │   │   ├── redis.py                                            #Kết nối Redis nếu dùng cache/token blacklist
+    │   │   ├── security.                                           #Kiểm tra token.
+    │   │   └── utils.py                                            #Hàm tiện ích chung như uuid, time format, gộp văn bản
+    │   ├── db
+    │   │   ├── database.py                                         
+    │   │   ├── models
+    │   │   │   ├── chat_model.py                                   #Mô hình lưu lịch sử chat của sinh viên (id, user_id, role, question, answer)
+    │   │   │   ├── user_model.py                                   #Mô hình người dùng (admin, student), lưu thông tin, email, mật khẩu, role.
+    │   │   │   └── vector_model.py                                 #Mô hình vector embedding (id, content, embedding, metadata).
+    │   │   └── schemas
+    │   │       ├── chat_schema.py                                  #Schema gửi/nhận dữ liệu chat (question, answer, user_id, role).
+    │   │       ├── user_schema.py                                  #Schema tạo user, đăng nhập, trả về thông tin người dùng.
+    │   │       └── vector_schema.py                                #Schema embedding (id, content, vector, file metadata).
+    │   ├── logger.py                                               #Cấu hình loguru để ghi log hệ thống.
+    │   ├── main.py                                                 #Entry point: tạo app FastAPI, gắn route, middleware.
+    │   ├── middleware
+    │   │   ├── log_request.py                                      #Middleware ghi log tất cả request và thời gian xử lý.
+    │   ├── rag
+    │   │   ├── chat_pipeline.py                                    #Pipeline thực hiện toàn bộ RAG: retrieve → rerank → prompt → LLM.
+    │   │   ├── embedder.py                                         #Tạo embedding từ JSON/PDF, lưu vào PostgreSQL (dùng BGE)
+    │   │   ├── llm_chain.py                                        #Tạo prompt và gửi đến LLM (Gemini, OpenRouter).
+    │   │   ├── processor_json.py                                   #Xử lý file JSON, chuẩn hóa, phân đoạn và sinh metadata.
+    │   │   ├── processor_pdf.py                                    #OCR PDF + phân trang + metadata cho RAG.
+    │   │   ├── retriever.py                                        #Truy vấn PostgreSQL vector DB và trả về Top-K documents.
+    │   │   ├── text_splitter.py                                    #Chia nhỏ văn bản theo ngữ nghĩa để embedding hiệu quả.
+    │   │   └── word_filter.py                                      #Kiểm tra từ cấm trước khi gửi câu hỏi lên LLM.
+    │   ├── routers
+    │   │   ├── admin.py                                            #API dành riêng cho quản trị viên: tạo user, thống kê, log.
+    │   │   ├── auth.py                                             #Đăng ký, đăng nhập, xác thực, đổi mật khẩu.
+    │   │   ├── chat.py                                             #API chat cho học sinh/sinh viên, xử lý theo vai trò.
+    │   │   └── user.py                                             #API CRUD user, lấy thông tin người dùng hiện tại
+    │   └── services
+    │       ├── auth_service.py                                     #Logic tạo user, kiểm tra login, mã hóa mật khẩu.
+    │       ├── chat_service.py                                     #Logic chính gọi pipeline chat, lưu lịch sử, lọc từ cấm.
 
-│   ├── core/                       # ⚙️ Logic lõi & tiện ích
-│   │   ├── constants.py            # Enum, Role, BotType...
-│   │   ├── security.py             # Xử lý JWT, mật khẩu
-│   │   └── utils.py                # Hàm tiện ích chung
+    ├── data
+    │   ├── admissions_20250623.json                                #Dữ liệu ngành tuyển sinh, dùng làm base knowledge cho học sinh.
+    │   ├── admissions_20250623_old.json                            #Dữ liệu ngành tuyển sinh, dùng làm base knowledge cho học sinh.
+    │   ├── static
+    │   │   └── pdfs                                                #Tài liệu PDF hỗ trợ RAG (trích xuất + OCR + embed).
+    │   ├── students_20250623.json                                  #Dữ liệu hướng dẫn sinh viên, cho chatbot sinh viên.
+    │   └── word_filter.json                                        #Danh sách từ cấm trong câu hỏi gửi lên LLM.
+    ├── logs
+    │   └── app.log
+    ├── README.md
+    ├── requirements.txt
+    └── scripts
+        ├── create_admin.py                                         #Tạo tài khoản admin đầu tiên qua CLI.
+        ├── embed_runner.py                                         #Chạy toàn bộ quy trình embed lại dữ liệu vào DB.
+    ├── requirements.txt
+    └── Frontend_RAG
+        ├── .env
+        ├── src
+            ├── app
+            │   ├── (admin)
+            │   │   ├── admin
+            │   │   │   ├── dashboard
+            │   │   │   │   └── page.tsx
+            │   │   │   ├── database
+            │   │   │   │   └── page.tsx
+            │   │   │   └── users
+            │   │   │       └── page.tsx
+            │   │   └── layout.tsx
+            │   ├── change-password
+            │   │   └── page.tsx
+            │   ├── favicon.ico
+            │   ├── forgot-password
+            │   │   └── page.tsx
+            │   ├── globals.css
+            │   ├── layout.tsx
+            │   ├── login
+            │   │   └── page.tsx
+            │   ├── page.tsx
+            │   ├── register
+            │   │   └── page.tsx
+            │   ├── tu-van
+            │   │   └── page.tsx
+            │   └── (user)
+            │       ├── layout.tsx
+            │       ├── profile
+            │       │   └── page.tsx
+            │       └── user
+            │           └── home
+            │               └── page.tsx
+            ├── components
+            │   ├── chat
+            │   │   └── Chat.tsx
+            │   ├── ChatComponent.tsx
+            │   ├── emotion
+            │   │   ├── cache.ts
+            │   │   └── provider.tsx
+            │   ├── EmotionProvider.tsx
+            │   ├── Footer.tsx
+            │   ├── Header.tsx
+            │   ├── hooks
+            │   │   └── useUser.ts
+            │   ├── Icon.tsx
+            │   ├── layout
+            │   │   ├── admin
+            │   │   │   ├── SearchButton.tsx
+            │   │   │   ├── Sidebar.tsx
+            │   │   │   ├── Topbar.tsx
+            │   │   │   ├── UserPagination.tsx
+            │   │   │   └── Usertable.tsx
+            │   │   └── user
+            │   │       ├── Achieve.tsx
+            │   │       ├── Hero.tsx
+            │   │       ├── Major.tsx
+            │   │       ├── NewSection.tsx
+            │   │       ├── News.tsx
+            │   │       └── RoadPath.tsx
+            │   ├── LoadingDot.tsx
+            │   ├── store
+            │   │   ├── index.tsx
+            │   │   └── useUser.ts
+            │   └── test.tsx
+            ├── config
+            │   └── const.ts
+            ├── lib
+            │   ├── api
+            │   │   └── index.ts
+            │   ├── db
+            │   │   └── db.ts
+            │   ├── helper
+            │   │   ├── index.ts
+            │   │   └── token.ts
+            │   └── prisma
+            │       └── prisma.ts
+            ├── middleware.ts
+            ├── services
+            │   ├── apis
+            │   │   ├── auth.ts
+            │   │   ├── chat.ts
+            │   │   └── user.ts
+            │   └── hooks
+            │       ├── hookApi.ts
+            │       ├── hookAuth.ts
+            │       ├── hookChat.ts
+            │       └── hookUser.ts
+            └── utils
+                └── createEmotionCache.ts
 
-│   ├── auth/                       # 🔐 Xác thực & Email
-│   │   ├── tokens.py               # JWT tạo & xác minh
-│   │   └── email_utils.py          # Gửi mail verify
-
-│   ├── routers/                    # 🌐 Định tuyến API
-│   │   ├── auth.py                 # /auth/signup, /login
-│   │   └── chat.py                 # /chat/student, /chat/admission
-
-│   ├── services/                   # 📦 Logic nghiệp vụ
-│   │   ├── auth_service.py         # Đăng nhập / đăng ký
-│   │   └── chat_service.py         # Gọi pipeline + lưu log
-
-│   ├── middleware/                 # 🛡️ Middleware cho app
-│   │   └── log_request.py          # Ghi log mỗi request
-
-│   ├── db/                         # 🗃️ Kết nối & mô hình CSDL
-│   │   ├── database.py             # Kết nối PostgreSQL
-│   │   ├── models/                 # SQLAlchemy ORM
-│   │   │   ├── user_model.py
-│   │   │   ├── chat_model.py
-│   │   │   └── vector_model.py
-│   │   └── schemas/                # Pydantic Schemas
-│   │       ├── user_schema.py
-│   │       ├── chat_schema.py
-│   │       └── vector_schema.py
-
-│   ├── rag/                        # 🔍 RAG (Retrieval-Augmented Generation)
-│   │   ├── embedder.py             # Tạo vector embedding
-│   │   ├── processor_json.py       # Xử lý file JSON
-│   │   ├── processor_pdf.py        # Xử lý PDF
-│   │   ├── retriever.py            # Truy vấn vector
-│   │   ├── llm_chain.py            # Gọi LLM như Gemini
-│   │   ├── chat_pipeline.py        # Pipeline xử lý câu hỏi
-│   │   ├── word_filter.py          # Lọc từ nhạy cảm
-│   │   └── text_splitter.py        # Chia đoạn văn bản (tuỳ chọn)
-
-├── scripts/                        # 🛠️ Script chạy ngoài
-│   └── embed_runner.py             # Chạy nhúng dữ liệu vào DB
-
-├── data/                           # 📂 Dữ liệu thô
-│   ├── admissions.json
-│   ├── students.json
-│   └── static/
-│       └── pdfs/                   # Tài liệu PDF
-
-├── alembic/                        # ⚙️ Migration DB (nếu dùng)
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-├── alembic.ini
-
-├── .env                            # Biến môi trường
-├── requirements.txt                # Dependencies
-├── README.md                       # Mô tả dự án
-
+#### Cơ sở dữ liệu
 psql -U postgres -d chatbot_db -h 127.0.0.1 -p 5432
 supersecurepassword
 
-CREATE TABLE IF NOT EXISTS embedding_admissions_20250627 (
+
+## tạo bảng 
+
+-- Table: embedding_admissions_20250627
+CREATE TABLE IF NOT EXISTS embedding_admissions_20250709 (
     id UUID PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -79,11 +171,12 @@ CREATE TABLE IF NOT EXISTS embedding_admissions_20250627 (
     title_raw TEXT,
     ma_nganh TEXT,
     doi_tuong TEXT,
-    chunk_index INT,
-    created_at TIMESTAMP DEFAULT NOW()
+    chunk_index INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS embedding_students_20250627 (
+-- Table: embedding_students_20250627
+CREATE TABLE IF NOT EXISTS embedding_students_20250709 (
     id UUID PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -94,11 +187,12 @@ CREATE TABLE IF NOT EXISTS embedding_students_20250627 (
     title_raw TEXT,
     ma_nganh TEXT,
     doi_tuong TEXT,
-    chunk_index INT,
-    created_at TIMESTAMP DEFAULT NOW()
+    chunk_index INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS embedding_pdfs_20250627 (
+-- Table: embedding_pdfs_20250627
+CREATE TABLE IF NOT EXISTS embedding_pdfs_20250709 (
     id UUID PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -111,23 +205,10 @@ CREATE TABLE IF NOT EXISTS embedding_pdfs_20250627 (
     doi_tuong TEXT,
     filename TEXT,
     file_type TEXT,
-    page_number INT,
-    chunk_index INT,
-    created_at TIMESTAMP DEFAULT NOW()
+    page_number INTEGER,
+    chunk_index INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
-
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT UNIQUE NOT NULL,
-    hashed_password TEXT NOT NULL,
-    full_name TEXT,
-    role TEXT DEFAULT 'student',           -- Nên thêm trường role để phân biệt admin/student
-    is_active BOOLEAN DEFAULT TRUE,        -- Nên thêm để đánh dấu tài khoản còn hoạt động
-    is_verified BOOLEAN DEFAULT FALSE,     -- Nếu bạn có dùng xác minh email
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 
 CREATE TABLE chat_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -136,15 +217,42 @@ CREATE TABLE chat_history (
     answer TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
-
+CREATE TABLE page_views (
+  id SERIAL PRIMARY KEY,
+  path TEXT NOT NULL,              -- Đường dẫn trang được truy
+  viewed_at TIMESTAMP DEFAULT NOW() -- Thời điểm truy cập
+);
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,  -- <<== sửa tên thành "password", bỏ hash
+    password TEXT NOT NULL, 
     full_name TEXT,
     role TEXT DEFAULT 'student',
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+## .env backend
+
+DATABASE_URL=Kết nối DB dạng sync: postgresql+psycopg2://user:password@host:port/db_name
+DATABASE_URL_ASYNC=Kết nối DB dạng async (dùng cho asyncpg, FastAPI async).
+PGVECTOR_DIM=1024=Số chiều của vector embedding (bge-m3 dùng 1024 chiều).
+
+EMBED_MODEL_NAME=BAAI/bge-m3	
+GEMINI_MODEL=models/gemini-2.0-flash	
+
+JWT_EXPIRE_MINUTES=60       #Token hết hạn sau 60 phút.
+
+## .env frontend
+
+NEXT_PUBLIC_API_BACKEND_DOMAIN dùng domain
+
+https://console.cloud.google.com/auth/clients/710412300912-dft5gs3kocr9el4temggad2fvom9m4b6.apps.googleusercontent.com?inv=1&invt=Ab2XSw&project=chatbot-login-project #thay domain vào đây
+
+uvicorn app.main:app --reload --port 8000
+cloudflared tunnel --url http://127.0.0.1:8000
+cloudflared tunnel --url http://localhost:3000
+npm run dev
+

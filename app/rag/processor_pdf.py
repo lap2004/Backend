@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import fitz  
 from uuid import uuid4
 from pathlib import Path
 
@@ -27,7 +27,6 @@ def extract_chunks_from_pdf(pdf_path: str) -> list[dict]:
             "page_number": i + 1,
             "chunk_index": 0,
         })
-
     return chunks
 
 def extract_all_pdfs(folder_path: str) -> list[dict]:

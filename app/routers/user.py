@@ -1,10 +1,8 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
-
 from app.db.database import get_db
 from app.db.models.user_model import User
 from app.db.schemas.user_schema import UserCreate, UserUpdate, UserOut
@@ -25,7 +23,6 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
 @router.post("/create")
 async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
-    # result = await db.execute(select(User).where(User.id == data.id))
     existing = result.scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=400, detail="Email đã tồn tại")
@@ -34,15 +31,14 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
         email=data.email,
         full_name=data.full_name,
         role=data.role,
-        password=password(data.password)  # dùng hàm password() không mã hóa
+        password=password(data.password) 
     )
-
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
     return {
-        "message": "✅ Tạo người dùng thành công",
+        "message": " Tạo người dùng thành công",
         "user": {
             "id": str(user.id),
             "email": user.email,
@@ -51,7 +47,6 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
             "created_at": user.created_at
         }
     }
-
 @router.put("/{user_id}", response_model=UserOut)
 async def update_user(user_id: UUID, data: UserUpdate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == user_id))
@@ -64,13 +59,10 @@ async def update_user(user_id: UUID, data: UserUpdate, db: AsyncSession = Depend
     user.email = data.email
     user.role = data.role
 
-    if data.password:  # Nếu có cập nhật mật khẩu
-        from app.core.security import hash_password
-        user.password = hash_password(data.password)
-
+    if data.password: 
+        user.password = data.password
     await db.commit()
     await db.refresh(user)
-
     return user
 
 @router.get("/current")
@@ -89,4 +81,3 @@ async def protected_route(current_user: User = Depends(get_current_user)):
         "user_id": current_user.id,
         "role": current_user.role,
     }
-

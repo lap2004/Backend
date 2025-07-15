@@ -12,14 +12,10 @@ FORBIDDEN_PATTERNS = [
     re.compile(rf"(?<!\w){re.escape(phrase)}(?!\w)", re.IGNORECASE)
     for phrase in FORBIDDEN_PHRASES
 ]
-
 def normalize_question(text: str) -> str:
     return text.lower().strip()
 
 def is_question_safe(question: str) -> bool:
-    """
-    Trả về False nếu câu hỏi chứa cụm từ bị cấm đúng nguyên vẹn
-    """
     normalized = normalize_question(question)
     for pattern in FORBIDDEN_PATTERNS:
         if pattern.search(normalized):

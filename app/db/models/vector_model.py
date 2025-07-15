@@ -7,7 +7,6 @@ import uuid
 
 Base = declarative_base()
 
-# Mixin dùng chung cho dữ liệu JSON (admissions, students)
 class BaseEmbeddingMixin:
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(Text, nullable=False)
@@ -22,17 +21,14 @@ class BaseEmbeddingMixin:
     chunk_index = Column(Integer)
     created_at = Column(DateTime, server_default=func.now())
 
-# Dữ liệu embedding từ admissions.json
 class EmbeddingAdmissions(Base, BaseEmbeddingMixin):
-    __tablename__ = "embedding_admissions_20250627"
+    __tablename__ = "embedding_admissions_20250709"
 
-# Dữ liệu embedding từ students.json
 class EmbeddingStudents(Base, BaseEmbeddingMixin):
-    __tablename__ = "embedding_students_20250627"
+    __tablename__ = "embedding_students_20250709"
 
-# Dữ liệu embedding từ PDF
 class EmbeddingPDFs(Base):
-    __tablename__ = "embedding_pdfs_20250627"
+    __tablename__ = "embedding_pdfs_20250709"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(Text, nullable=False)

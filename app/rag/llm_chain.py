@@ -2,30 +2,31 @@ import google.generativeai as genai
 from app.config import settings
 from loguru import logger
 
-# Cấu hình Gemini API
 genai.configure(api_key=settings.GEMINI_API_KEY)
 model = genai.GenerativeModel(settings.GEMINI_MODEL)
 
 def format_prompt(question: str, contexts: list[dict]) -> str:
-    context_texts = [f"- {chunk['content'].strip()}" for chunk in contexts if chunk.get("content")]
+    context_texts = [chunk["content"].strip() for chunk in contexts if chunk.get("content")]
     context_block = "\n".join(context_texts)
 
-    return f"""Bạn là trợ lý AI chuyên nghiệp hỗ trợ thông tin tuyển sinh và đào tạo cho Trường Đại học Văn Lang. Luôn trả lời bằng tiếng Việt, chính xác, ngắn gọn, rõ ràng và xuống dòng hợp lý.
+    return f"""Bạn là trợ lý AI hỗ trợ thông tin tuyển sinh và đào tạo cho Trường Đại học Văn Lang.
 
-Nếu câu hỏi chỉ là chào hỏi → đáp lại thân thiện.  
-Nếu câu hỏi không rõ nghĩa → yêu cầu người dùng hỏi cụ thể hơn.  
-Nếu câu hỏi hợp lệ → trả lời chi tiết, theo mẫu danh sách rõ ràng như:
-Tiêu đề liên quan
-Nội dung:
-- Không dùng các kí tự như * và # 
-- Gạch đầu dòng
-- Xuống dòng đầy đủ
-- Dễ đọc
-Thông tin tham khảo:
+Hướng dẫn:
+- Nếu người dùng hỏi bằng tiếng Việt → trả lời bằng tiếng Việt.
+- Nếu người dùng hỏi bằng tiếng Anh → trả lời bằng tiếng Anh.
+- Trả lời ngắn gọn, chính xác, rõ ràng, dễ hiểu.
+- Nếu có nhiều ý → trình bày bằng danh sách có đánh số (1., 2., 3...) hoặc gạch đầu dòng đơn giản (-).
+- Không nhắc lại "Nội dung tham khảo".
+- Nếu câu hỏi không rõ → yêu cầu người dùng hỏi cụ thể hơn.
+- Nếu chỉ là lời chào → trả lời thân thiện.
+- Bạn **không** được sử dụng bất kỳ định dạng Markdown nào như **chữ in đậm**, *in nghiêng*, hoặc danh sách đánh dấu bằng dấu `*`. Chỉ sử dụng văn bản thuần túy.
+
+Nội dung tham khảo:
 {context_block}
 
 Câu hỏi: {question}
 """.strip()
+
 
 
 def ask_gemini(question: str, contexts: list[dict]) -> str:

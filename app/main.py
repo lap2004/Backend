@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, chat, user
+from app.routers import auth, chat, user, track
 from app.logger import setup_logger
 from app.middleware.log_request import LogRequestMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -18,8 +18,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
 
-    allow_origins=["http://localhost:3000","http://127.0.0.1:8000","https://nigeria-jeffrey-feeling-wishing.trycloudflare.com",],
-    # thay bằng link fe sau khi chạy cd frontend cloudflared tunnel --url http://localhost:3000, thay bằng link be sau kho chạy cloudflared tunnel --url http://127.0.0.1:8000
+    allow_origins=["https://nckh-brown.vercel.app","https://bristol-themselves-whom-leads.trycloudflare.com","http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +27,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"],)
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])        
 app.include_router(user.router, prefix="/users", tags=["Users"])     
 app.include_router(admin.router, prefix="/admin",tags=["Admin"])
-
+app.include_router(track.router)
 
 @app.get("/", tags=["Health"])
 async def root():

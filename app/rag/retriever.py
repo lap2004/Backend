@@ -2,19 +2,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from typing import Literal
 
-# Biểu thức truy vấn theo vai trò người dùng (đảm bảo đồng nhất số cột)
 TABLE_BY_ROLE = {
-    "guest": "embedding_admissions_20250627",
+    "guest": "embedding_admissions_20250709",
+    "admission": "embedding_admissions_20250709",
     "student": """
         (
-            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_admissions_20250627
+            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_admissions_20250709
             UNION ALL
-            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_students_20250627
+            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_students_20250709
             UNION ALL
-            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_pdfs_20250627
+            SELECT id, content, title, source, field, type, chunk_index, embedding FROM embedding_pdfs_20250709
         )
     """
 }
+
 
 async def retrieve_chunks(
     embedding: list[float],
@@ -42,7 +43,6 @@ async def retrieve_chunks(
     if not table_expr:
         raise ValueError(f"Role không hợp lệ: {role}")
 
-    # Tạo điều kiện lọc tùy chọn
     filters = []
     if field:
         filters.append("field = :field")
@@ -50,7 +50,6 @@ async def retrieve_chunks(
         filters.append("type = :type")
     where_clause = f"WHERE {' AND '.join(filters)}" if filters else ""
 
-    # Truy vấn SQL với pgvector <#> (cosine distance)
     sql = text(f"""
         SELECT id, content, title, source, field, type, chunk_index,
                1 - (embedding <#> (:embedding)::vector) AS score
@@ -59,8 +58,6 @@ async def retrieve_chunks(
         ORDER BY embedding <#> (:embedding)::vector
         LIMIT :top_k
     """)
-
-    # Tạo parameter binding
     params = {
         "embedding": f"[{', '.join(map(str, embedding))}]",
         "top_k": top_k,
@@ -70,7 +67,6 @@ async def retrieve_chunks(
     if type_:
         params["type"] = type_
 
-    # Thực thi truy vấn và trả kết quả
     result = await db.execute(sql, params)
     rows = result.fetchall()
 

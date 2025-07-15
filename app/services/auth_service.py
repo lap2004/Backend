@@ -6,12 +6,8 @@ from fastapi import Depends, Header, HTTPException, status
 from app.db.models.user_model import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
 from app.config import settings
-from app.auth.tokens import generate_reset_token
 from app.db.database import get_db  
-
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
@@ -22,7 +18,6 @@ def password(password: str) -> str:
 
 def verify_password(plain_password: str, stored_password: str) -> bool:
     return plain_password == stored_password
-
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
@@ -45,7 +40,6 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Thiếu hoặc sai định dạng Authorization header",
         )
-
     token = authorization.split(" ", 1)[1]
     try:
         payload = decode_access_token(token)
@@ -68,17 +62,15 @@ async def get_current_user(
         )
 
 async def register_user(email: str, full_name: str, raw_password: str, db: AsyncSession) -> User:
-    # Kiểm tra email đã tồn tại
     q = await db.execute(select(User).where(User.email == email))
     existing = q.scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
-    # Không mã hóa mật khẩu
     user = User(
         email=email,
         full_name=full_name,
-        password=password(raw_password),  # plaintext
+        password=password(raw_password),  
         is_active=True,
         is_verified=True,
         role="student"
@@ -87,6 +79,5 @@ async def register_user(email: str, full_name: str, raw_password: str, db: Async
     db.add(user)
     await db.commit()
     await db.refresh(user)
-
     return user
 

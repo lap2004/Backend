@@ -4,7 +4,6 @@ from starlette.responses import Response
 from loguru import logger
 import time
 
-
 class LogRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()

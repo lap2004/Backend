@@ -2,7 +2,6 @@ import tiktoken
 from typing import List
 from uuid import uuid4
 
-# Load tokenizer theo model 
 ENCODING_NAME = "cl100k_base"  
 tokenizer = tiktoken.get_encoding(ENCODING_NAME)
 

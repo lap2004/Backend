@@ -14,7 +14,7 @@ class User(Base):
     full_name = Column(String, nullable=True)
     role = Column(String, default="student")
     is_verified = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)  # nên có để vô hiệu hóa tài khoản
+    is_active = Column(Boolean, default=True) 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     force_password_change = Column(
         Boolean,

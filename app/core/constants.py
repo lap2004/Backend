@@ -1,5 +1,3 @@
-# app/core/constants.py
-
 from enum import Enum
 
 class Role(str, Enum):

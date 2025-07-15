@@ -1,12 +1,9 @@
-# app/rag/embedder.py
-
 from app.config import settings
 from app.db.database import get_sync_session
 from app.db.models.vector_model import EmbeddingAdmissions, EmbeddingStudents, EmbeddingPDFs
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
-# Load model once
 model = SentenceTransformer(settings.EMBED_MODEL_NAME,device="cpu")
 
 def embed_chunks(chunks: list[dict], table_name: str):
@@ -25,11 +22,11 @@ def embed_chunks(chunks: list[dict], table_name: str):
         print(f"Đã lưu {len(chunks)} vector vào bảng {table_name}")
 
 def get_model_instance(table_name: str, chunk: dict, vector: list[float]):
-    if table_name == "embedding_admissions_20250627":
+    if table_name == "embedding_admissions_20250709":
         return EmbeddingAdmissions(**chunk, embedding=vector)
-    elif table_name == "embedding_students_20250627":
+    elif table_name == "embedding_students_20250709":
         return EmbeddingStudents(**chunk, embedding=vector)
-    elif table_name == "embedding_pdfs_20250627":
+    elif table_name == "embedding_pdfs_20250709":
         return EmbeddingPDFs(**chunk, embedding=vector)
     else:
         raise ValueError(f"Bảng không hợp lệ: {table_name}")
