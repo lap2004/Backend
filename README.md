@@ -1,5 +1,5 @@
 #### Cấu trúc dự án
-└── chatbot
+
     ├── alembic
     ├── alembic.ini
     ├── app
@@ -44,7 +44,6 @@
     │   └── services
     │       ├── auth_service.py                                     #Logic tạo user, kiểm tra login, mã hóa mật khẩu.
     │       ├── chat_service.py                                     #Logic chính gọi pipeline chat, lưu lịch sử, lọc từ cấm.
-
     ├── data
     │   ├── admissions_20250623.json                                #Dữ liệu ngành tuyển sinh, dùng làm base knowledge cho học sinh.
     │   ├── admissions_20250623_old.json                            #Dữ liệu ngành tuyển sinh, dùng làm base knowledge cho học sinh.
@@ -67,7 +66,7 @@
             │   ├── (admin)
             │   │   ├── admin
             │   │   │   ├── dashboard
-            │   │   │   │   └── page.tsx
+            │   │   │   │   └── page.tsx                            
             │   │   │   ├── database
             │   │   │   │   └── page.tsx
             │   │   │   └── users
@@ -152,102 +151,120 @@
             └── utils
                 └── createEmotionCache.ts
 
-#### Cơ sở dữ liệu
+#### PostgreSQL
+Để kết nối vào cơ sở dữ liệu PostgreSQL cục bộ:
+```bash
 psql -U postgres -d chatbot_db -h 127.0.0.1 -p 5432
 supersecurepassword
 
-
-## tạo bảng 
-
--- Table: embedding_admissions_20250627
-CREATE TABLE IF NOT EXISTS embedding_admissions_20250709 (
-    id UUID PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    embedding VECTOR(1024),
-    type TEXT,
-    field TEXT,
-    source TEXT,
-    title_raw TEXT,
-    ma_nganh TEXT,
-    doi_tuong TEXT,
-    chunk_index INTEGER,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+## Tạo bảng
+```sql
+-- Table: embedding_admissions_20250716
+CREATE TABLE IF NOT EXISTS embedding_admissions_20250716 (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  embedding VECTOR(1024),
+  type TEXT,
+  field TEXT,
+  source TEXT,
+  title_raw TEXT,
+  ma_nganh TEXT,
+  doi_tuong TEXT,
+  chunk_index INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table: embedding_students_20250627
-CREATE TABLE IF NOT EXISTS embedding_students_20250709 (
-    id UUID PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    embedding VECTOR(1024),
-    type TEXT,
-    field TEXT,
-    source TEXT,
-    title_raw TEXT,
-    ma_nganh TEXT,
-    doi_tuong TEXT,
-    chunk_index INTEGER,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+-- Table: embedding_students_20250716
+CREATE TABLE IF NOT EXISTS embedding_students_20250716 (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  embedding VECTOR(1024),
+  type TEXT,
+  field TEXT,
+  source TEXT,
+  title_raw TEXT,
+  ma_nganh TEXT,
+  doi_tuong TEXT,
+  chunk_index INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table: embedding_pdfs_20250627
-CREATE TABLE IF NOT EXISTS embedding_pdfs_20250709 (
-    id UUID PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    embedding VECTOR(1024),
-    type TEXT,
-    field TEXT,
-    source TEXT,
-    title_raw TEXT,
-    ma_nganh TEXT,
-    doi_tuong TEXT,
-    filename TEXT,
-    file_type TEXT,
-    page_number INTEGER,
-    chunk_index INTEGER,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+-- Table: embedding_pdfs_20250716
+CREATE TABLE IF NOT EXISTS embedding_pdfs_20250716 (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  embedding VECTOR(1024),
+  type TEXT,
+  field TEXT,
+  source TEXT,
+  title_raw TEXT,
+  ma_nganh TEXT,
+  doi_tuong TEXT,
+  filename TEXT,
+  file_type TEXT,
+  page_number INTEGER,
+  chunk_index INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE chat_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    question TEXT NOT NULL,
-    answer TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS chat_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  username VARCHAR,
+  role VARCHAR DEFAULT 'student',
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 CREATE TABLE page_views (
   id SERIAL PRIMARY KEY,
-  path TEXT NOT NULL,              -- Đường dẫn trang được truy
+  path TEXT NOT NULL,
   viewed_at TIMESTAMP DEFAULT NOW() -- Thời điểm truy cập
 );
 
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL, 
-    full_name TEXT,
-    role TEXT DEFAULT 'student',
-    is_active BOOLEAN DEFAULT TRUE,
-    is_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS user_20250627 (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR NOT NULL UNIQUE,
+  password VARCHAR NOT NULL,
+  full_name VARCHAR,
+  role VARCHAR DEFAULT 'student',
+  is_verified BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  force_password_change BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 ## .env backend
 
-DATABASE_URL=Kết nối DB dạng sync: postgresql+psycopg2://user:password@host:port/db_name
-DATABASE_URL_ASYNC=Kết nối DB dạng async (dùng cho asyncpg, FastAPI async).
-PGVECTOR_DIM=1024=Số chiều của vector embedding (bge-m3 dùng 1024 chiều).
+```env
+# Kết nối DB dạng sync - async
+DATABASE_URL=postgresql+psycopg2://user:password@host:port/db_name
+DATABASE_URL_ASYNC=postgresql+asyncpg://user:password@host:port/db_name
 
-EMBED_MODEL_NAME=BAAI/bge-m3	
-GEMINI_MODEL=models/gemini-2.0-flash	
+# Số chiều của vector embedding (bge-m3 dùng 1024 chiều)
+PGVECTOR_DIM=1024
 
-JWT_EXPIRE_MINUTES=60       #Token hết hạn sau 60 phút.
+# Mô hình embedding và LLM
+EMBED_MODEL_NAME=BAAI/bge-m3
+GEMINI_MODEL=models/gemini-2.0-flash
 
-## .env frontend
+# Token hết hạn sau 60 phút
+JWT_EXPIRE_MINUTES=60
+# Domain của API backend
+NEXT_PUBLIC_API_BACKEND_DOMAIN=https://your-backend-domain.com
 
-NEXT_PUBLIC_API_BACKEND_DOMAIN dùng domain
+# Chạy backend (FastAPI)
+uvicorn app.main:app --reload --port 8000
+
+# Dùng Cloudflared để tạo tunnel ra ngoài
+cloudflared tunnel --url http://127.0.0.1:8000
+
+# frontend (Next.js)
+npm run dev
 
 https://console.cloud.google.com/auth/clients/710412300912-dft5gs3kocr9el4temggad2fvom9m4b6.apps.googleusercontent.com?inv=1&invt=Ab2XSw&project=chatbot-login-project #thay domain vào đây
 

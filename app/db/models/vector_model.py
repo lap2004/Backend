@@ -22,13 +22,13 @@ class BaseEmbeddingMixin:
     created_at = Column(DateTime, server_default=func.now())
 
 class EmbeddingAdmissions(Base, BaseEmbeddingMixin):
-    __tablename__ = "embedding_admissions_20250709"
+    __tablename__ = "embedding_admissions_20250715"
 
 class EmbeddingStudents(Base, BaseEmbeddingMixin):
-    __tablename__ = "embedding_students_20250709"
+    __tablename__ = "embedding_students_20250715"
 
 class EmbeddingPDFs(Base):
-    __tablename__ = "embedding_pdfs_20250709"
+    __tablename__ = "embedding_pdfs_20250715"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(Text, nullable=False)

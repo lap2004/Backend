@@ -18,7 +18,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
 
-    allow_origins=["https://nckh-brown.vercel.app","https://bristol-themselves-whom-leads.trycloudflare.com","http://localhost:3001"],
+    allow_origins=["https://feeling-vietnamese-nr-id.trycloudflare.com","http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

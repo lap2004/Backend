@@ -27,8 +27,6 @@ Nội dung tham khảo:
 Câu hỏi: {question}
 """.strip()
 
-
-
 def ask_gemini(question: str, contexts: list[dict]) -> str:
     prompt = format_prompt(question, contexts)
 

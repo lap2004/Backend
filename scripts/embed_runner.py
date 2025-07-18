@@ -17,13 +17,13 @@ def main():
     print("Bắt đầu embedding toàn bộ dữ liệu...")
 
     admission_chunks = load_json_chunks(settings.DATA_PATH_ADMISSIONS, source="admissions")
-    process_and_embed("admissions", admission_chunks, table_name="embedding_admissions_20250709")
+    process_and_embed("admissions", admission_chunks, table_name="embedding_admissions_20250715")
 
     student_chunks = load_json_chunks(settings.DATA_PATH_STUDENTS, source="students")
-    process_and_embed("students", student_chunks, table_name="embedding_students_20250709")
+    process_and_embed("students", student_chunks, table_name="embedding_students_20250715")
 
     pdf_chunks = extract_all_pdfs(settings.PDF_DIR)
-    process_and_embed("pdfs", pdf_chunks, table_name="embedding_pdfs_20250709")
+    process_and_embed("pdfs", pdf_chunks, table_name="embedding_pdfs_20250715")
 
     print(" Hoàn tất embedding tất cả nguồn dữ liệu.")
 

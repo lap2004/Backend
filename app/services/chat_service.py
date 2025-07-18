@@ -5,24 +5,6 @@ from app.db.models.chat_model import ChatHistory
 from app.db.schemas.chat_schema import ChatResponse
 from app.rag.word_filter import is_question_safe
 
-
-# async def handle_admission_query(question: str, db: AsyncSession) -> ChatResponse:
-#     if not is_question_safe(question):
-#         return ChatResponse(
-#             answer="Câu hỏi của bạn chứa nội dung không phù hợp.",
-#             chunks=[]
-#         )
-#     result = await chat_pipeline(
-#         question=question,
-#         role="guest",
-#         db=db
-#     )
-
-#     return ChatResponse(
-#         answer=result["answer"],
-#         chunks=result["chunks"]
-#     )
-
 async def handle_admission_query(question: str, db: AsyncSession):
     role = "admission"
     user_id = None

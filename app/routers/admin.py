@@ -25,17 +25,6 @@ DATA_PATH_ADMISSIONS = "data/admissions_20250623.json"
 DATA_PATH_STUDENTS = "data/students_20250623.json"
 PDF_DIR = "data/static/pdfs"
 
-# @router.get("/stats")
-# def get_stats(db: Session = Depends(get_db)):
-#     total_users = db.query(User).count()
-#     total_students = db.query(User).filter(User.role == "student").count()
-#     total_admins = db.query(User).filter(User.role == "admin").count()
-#     return {
-#         "total_users": total_users,
-#         "total_students": total_students,
-#         "total_admins": total_admins,
-    # }
-
 @router.post("/upload-json")
 async def upload_json_append(
     file: UploadFile = File(...),
@@ -126,58 +115,6 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User))
     users = result.scalars().all()
     return users
-
-# @router.get("/dashboard")
-# def get_admin_dashboard(db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
-#     total_users = db.query(User).count()
-#     total_students = db.query(User).filter(User.role == "student").count()
-#     total_admins = db.query(User).filter(User.role == "admin").count()
-#     latest_signup = db.query(User).order_by(User.created_at.desc()).first()
-
-#     today = datetime.utcnow().date()
-#     start_date = today - datetime.timedelta(days=6)
-#     signup_by_day = (
-#         db.query(User.created_at)
-#         .filter(User.created_at >= start_date)
-#         .all()
-#     )
-
-#     signup_counter = defaultdict(int)
-#     for user in signup_by_day:
-#         day = user.created_at.date().isoformat()
-#         signup_counter[day] += 1
-
-#     signup_result = [
-#         {"date": (start_date + datetime.timedelta(days=i)).isoformat(), "count": signup_counter[(start_date + datetime.timedelta(days=i)).isoformat()]}
-#         for i in range(7)
-#     ]
-
-#     chat_by_day = (
-#         db.query(ChatHistory.timestamp)
-#         .filter(ChatHistory.timestamp >= start_date)
-#         .all()
-#     )
-
-#     chat_counter = defaultdict(int)
-#     for chat in chat_by_day:
-#         day = chat.timestamp.date().isoformat()
-#         chat_counter[day] += 1
-
-#     chat_result = [
-#         {"date": (start_date + datetime.timedelta(days=i)).isoformat(), "questions": chat_counter[(start_date + datetime.timedelta(days=i)).isoformat()]}
-#         for i in range(7)
-#     ]
-
-#     return {
-#         "summary": {
-#             "total_users": total_users,
-#             "total_students": total_students,
-#             "total_admins": total_admins,
-#             "latest_signup": latest_signup.created_at.date().isoformat() if latest_signup else "N/A"
-#         },
-#         "signup_by_day": signup_result,
-#         "chat_usage": chat_result
-#     }
 
 @router.get("/stats")
 async def get_admin_stats(db: AsyncSession = Depends(get_db)):

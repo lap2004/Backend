@@ -22,11 +22,11 @@ def embed_chunks(chunks: list[dict], table_name: str):
         print(f"Đã lưu {len(chunks)} vector vào bảng {table_name}")
 
 def get_model_instance(table_name: str, chunk: dict, vector: list[float]):
-    if table_name == "embedding_admissions_20250709":
+    if table_name == "embedding_admissions_20250715":
         return EmbeddingAdmissions(**chunk, embedding=vector)
-    elif table_name == "embedding_students_20250709":
+    elif table_name == "embedding_students_20250715":
         return EmbeddingStudents(**chunk, embedding=vector)
-    elif table_name == "embedding_pdfs_20250709":
+    elif table_name == "embedding_pdfs_20250715":
         return EmbeddingPDFs(**chunk, embedding=vector)
     else:
         raise ValueError(f"Bảng không hợp lệ: {table_name}")
