@@ -50,28 +50,6 @@ def generate_random_password(length=8):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choices(chars, k=length))
 
-
-# def send_new_password_email(email: str, new_password: str):
-#     subject = "Mật khẩu mới của bạn | VLU Chatbot"
-
-#     body = f"""
-#     <html>
-#       <body>
-#         <p>Xin chào,</p>
-
-#         <p>Bạn vừa yêu cầu <strong>đặt lại mật khẩu</strong> cho tài khoản Chatbot của mình.</p>
-
-#         <p>Mật khẩu mới của bạn là:</p>
-#         <h2 style="color:#007bff;"> {new_password}</h2>
-
-#         <p> Vui lòng sử dụng mật khẩu này để đăng nhập, và <strong>đổi lại mật khẩu ngay sau đó</strong> để bảo mật tài khoản.</p>
-
-#         <p>Trân trọng,<br/>VLU Chatbot</p>
-#       </body>
-#     </html>
-#     """
-#     send_email(subject=subject, recipient=email, body=body, subtype="html")
-
 def send_new_password_email(to_email: str, new_password: str):
     subject = "Mật khẩu mới của bạn | VLU Chatbot"
 
@@ -106,4 +84,3 @@ def send_new_password_email(to_email: str, new_password: str):
         print("Gửi thành công.")
     except Exception as e:
         print(f"Gửi thất bại: {e}")
-        # raise HTTPException(status_code=500, detail="Không gửi được email.")

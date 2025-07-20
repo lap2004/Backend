@@ -18,7 +18,16 @@ def load_json_chunks(path: str, source: str) -> List[dict]:
             if field in {"id", "type", "title", "doi_tuong"} or not value:
                 continue
 
-            if field == "diem_chuan_2024" and isinstance(value, str):
+            # if field == "diem_chuan_2025" and isinstance(value, str):
+            #     parts = value.split(",")
+            #     for p in parts:
+            #         p = p.strip()
+            #         if ":" not in p:
+            #             continue
+            #         method, score = p.split(":")
+            #         method = method.strip()
+            #         score = score.strip()
+            if field == "diem_chuan_2025" and isinstance(value, str):
                 parts = value.split(",")
                 for p in parts:
                     p = p.strip()
@@ -31,12 +40,13 @@ def load_json_chunks(path: str, source: str) -> List[dict]:
                     method_map = {
                         "hoc_ba": "Xét học bạ",
                         "thi_tot_nghiep": "Thi tốt nghiệp THPT",
-                        "dgnl_qg": "Đánh giá năng lực"
+                        "dgnl_qg": "Đánh giá năng lực",
+                        "vsat": "Kỳ thi V-SAT"
                     }
                     method_vi = method_map.get(method, method)
 
-                    title = f"Điểm chuẩn 2024 – {method_vi} – {base_title}"
-                    content = f"Điểm chuẩn 2024 theo {method_vi} của {base_title} là {score} điểm."
+                    title = f"Điểm chuẩn 2025 – {method_vi} – {base_title}"
+                    content = f"Điểm chuẩn 2025 theo {method_vi} của {base_title} là {score} điểm."
 
                     chunks.append({
                         "id": uuid4(),
